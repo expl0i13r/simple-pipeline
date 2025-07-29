@@ -1,9 +1,7 @@
-# app.py program - updated program ( new 2025 )
+import subprocess
+
 def add(a, b):
     return a + b
 
-
-def insecure_example():
-    eval("print('This is insecure')")  # Semgrep will flag this
-    eval("print('bad')")  # should trigger Semgrep
-
+def insecure():
+    subprocess.call(f"ls {input('Enter something: ')}", shell=True)
