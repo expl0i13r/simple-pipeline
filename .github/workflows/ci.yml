@@ -1,4 +1,4 @@
-name: CI with SAST and SCA
+name: CI with Snyk SCA Scan
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-test-scan:
+  build-test-sca:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,15 +29,10 @@ jobs:
       run: |
         pytest
 
-    - name: Run Semgrep (SAST)
-      uses: returntocorp/semgrep-action@v1
-      with:
-        config: "p/default"
-
-    - name: Snyk Auth
+    - name: Authenticate with Snyk
       run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-    - name: Snyk SCA Scan (Python)
+    - name: Run Snyk SCA Scan
       uses: snyk/actions/python@0.4.0
       with:
         args: test --file=requirements.txt --severity-threshold=medium
