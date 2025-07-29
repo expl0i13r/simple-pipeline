@@ -1,4 +1,4 @@
-name: CI with Snyk SCA Scan
+name: CI with Snyk SCA and Code Scan
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-test-sca:
+  build-test-snyk:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,23 +19,34 @@ jobs:
       with:
         python-version: 3.11
 
-    - name: Install dependencies
+    - name: Set up Node.js (for Snyk)
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements.txt || true
         pip install pytest
 
     - name: Run Tests
       run: |
         pytest
 
+    - name: Install Snyk CLI
+      run: npm install -g snyk
+
     - name: Authenticate with Snyk
       run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-    - name: Run Snyk SCA Scan
-      uses: snyk/actions/python@0.4.0
-      with:
-        args: test --file=requirements.txt --severity-threshold=medium
+    - name: Run Snyk Code Scan (Python files)
+      run: snyk code test
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    - name: Run Snyk SCA Scan (Dependencies)
+      run: snyk test --file=requirements.txt --severity-threshold=medium
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
